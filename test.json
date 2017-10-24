@@ -1,0 +1,8 @@
+{
+   "numSegments": 2,
+    "segments": [{
+      "name": "Test",
+      "qty": 10,
+      "color": "#ffffff"
+    }]
+}
