@@ -1,0 +1,16 @@
+{
+  "name": "unique-rifa",
+  "version": "1.0.0",
+  "description": "A simple raffle app for unique using Electron",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Franklin Isalguez",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^1.4.6",
+    "gsap": "^1.20.3"
+  }
+}
