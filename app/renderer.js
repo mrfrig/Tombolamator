@@ -5,63 +5,87 @@ require('angular-material');
 const { remote, ipcRenderer } = require('electron');
 const mainProcess = remote.require('./main');
 
+
+
 var filePath = null;
 
 var RaffleApp = angular.module('RaffleApp', ['ngMaterial']);
 
-RaffleApp.controller('RaffleMainCtrl', function RaffleMainCtrl($scope) {
+RaffleApp.controller('RaffleMainCtrl', function RaffleMainCtrl($scope, $rootScope) {
   var vm = $scope;
+  $rootScope.prize = "";
+  $rootScope.una = false;
+
+  vm.isCreating = false;
+
+  vm.isPlaying = false;
+  vm.showPrizeCount = true;
 
   vm.openFile = function openFile() {
-    mainProcess.getFileFromUserSelection();
+    filePath = mainProcess.getFileFromUserSelection();
+    vm.isCreating = false;
+    vm.isPlaying = true;
   };
 
-  vm.saveFile = function saveFile() {
-    mainProcess.saveRaffle(filePath, JSON.stringify(vm.raffle));
+  vm.saveFile = function saveFile(raffle) {
+    filePath = mainProcess.saveRaffle(filePath, JSON.stringify(raffle));
+    if (filePath === null) {
+      return;
+    }
+    vm.isCreating = false;
+    vm.isPlaying = true;
+  };
+
+  vm.createRaffle = function createRaffle() {
+    vm.isCreating = true;
+    vm.isPlaying = true;
+  };
+
+  vm.showThePrizeCount = function showThePrizeCount() {
+    vm.showPrizeCount = !vm.showPrizeCount;
   };
 });
 
-RaffleApp.controller('RaffleHomeCtrl', function RaffleHomeCtrl($scope) {});
 
-
-RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope) {
+RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDialog, $rootScope) {
   var vm = $scope;
   vm.raffle = {
     raffleName: "",
     numSegments: 2,
+    total: 0,
+    ProportionalChance: true,
     segments: [{
       name: "",
       qty: 1,
-      color: "#ffffff"
-    },{
-      name: "",
-      qty: 1,
-      color: "#ffffff"
+      color: "#ffffff",
+      textColor: "#000000",
+      una: false
     }]
   };
 
-  vm.ProportionalChance = true;
-
 
   vm.myWheel = null;
+  vm.isRotating = false;
 
   vm.addPrize = function addPrize() {
     vm.raffle.segments.push({
       name: "",
       qty: 1,
-      color: "#ffffff"
+      color: "#ffffff",
+      textColor: "#000000",
+      una: false
     });
   };
 
   vm.deletePrize = function deletePrize(index) {
-    console.log(index);
-    vm.raffle.segments = vm.raffle.segments.splice(index);
+    if (vm.raffle.segments.length === 1) return;
+    vm.raffle.segments.splice(index, 1);
   };
 
   ipcRenderer.on('file-opened', function(event, file, content){
     filePath = file;
-    console.log(file);
     vm.raffle = JSON.parse(content);
+    vm.createPreview();
     $scope.$apply();
   });
 
@@ -73,18 +97,106 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope) {
     return total;
   }
 
-  
+  vm.spinWheel = function() {
+    if (!vm.isRotating && !vm.isCreating) {
+      vm.myWheel.startAnimation();
+    }
+  };
+
+  vm.alertPrize = function alertPrize() {
+    var winningSegment = vm.myWheel.getIndicatedSegment();
+    $rootScope.prize = winningSegment.text;
+    $rootScope.una = vm.getUna(winningSegment.text);
+    $scope.showAdvanced();
+  };
+
+  vm.getUna = function getUna(name){
+    for (var i = 0; i < vm.raffle.segments.length; i++) {
+      var element = vm.raffle.segments[i];
+
+      if (element.name === name) {
+        return element.una;
+      } 
+    }
+  };
+
+  vm.prizeWon = function prizeWon(prize){
+    vm.raffle.segments.forEach(function(element) {
+      if (element.name === prize && element.qty >= 0) {
+        element.qty -= 1;
+      }
+    }, this);
+  };
+
+  $scope.showAdvanced = function(ev) {
+    $mdDialog.show({
+      controller: DialogController,
+      templateUrl: 'dialog1.tmpl.html',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true,
+      fullscreen: true // Only for -xs, -sm breakpoints.
+    })
+    .then(function(prize) {
+      vm.prizeWon(prize);
+      vm.saveFile(vm.raffle);
+      vm.createPreview();
+    }, function() {
+      vm.createPreview();
+    });
+  };
+
+  function DialogController($scope, $mdDialog, $rootScope) {
+    $scope.prize = $rootScope.prize;
+    $scope.una = $rootScope.una;
+    $scope.hide = function() {
+      $mdDialog.hide();
+    };
+
+    $scope.cancel = function() {
+      $mdDialog.cancel();
+    };
+
+    $scope.confirmPrize = function(prize) {
+      $mdDialog.hide(prize);
+    };
+  }
+
+
+  vm.getContrastYIQ = function getContrastYIQ(hexcolor) {
+    var r = parseInt(hexcolor.substring(1,3),16);
+    var g = parseInt(hexcolor.substring(3,5),16);
+    var b = parseInt(hexcolor.substring(5,7),16);
+    var yiq = ((r*299)+(g*587)+(b*114))/1000;
+   
+    return (yiq >= 128) ? '#000000' : "#ffffff";
+   };
 
   vm.createPreview = function createPreview() {
-    var total = totalPrizes();
-    var raffle = {'numSegments': vm.raffle.segments.length,'segments': []};
+    
+    vm.raffle.total = totalPrizes();
+    var raffle = {
+      'numSegments': vm.raffle.segments.length,
+      'segments': [],
+      'lineWidth': 2,
+      'animation' : {
+        'type'     : 'spinToStop',
+        'duration' : Math.random() * (5 - 2) + 2,
+        'spins'    : Math.random() * (8 - 4) + 4,
+        'callbackFinished' : 'angular.element(document.getElementById("canvas")).scope().alertPrize()'
+      }
+      
+  };
     vm.raffle.segments.forEach(function(element) {
+      element.textColor = vm.getContrastYIQ(element.color);
       raffle.segments.push({
         'fillStyle' : element.color, 
-        'text' : element.name
+        'text' : element.name,
+        'textFillStyle': element.textColor,
+        'textFontSize': 45
       });
-      if (vm.ProportionalChance) {
-        raffle.segments[raffle.segments.length - 1].size = winwheelPercentToDegrees(element.qty/total*100);
+      if (vm.raffle.ProportionalChance) {
+        raffle.segments[raffle.segments.length - 1].size = winwheelPercentToDegrees(element.qty/vm.raffle.total*100);
       }
     }, this);
 
@@ -168,3 +280,4 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope) {
 
   
 // }
+

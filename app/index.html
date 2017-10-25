@@ -6,22 +6,23 @@
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css">
   <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,700'>
-  <link href="../node_modules/material-design-icons/iconfont/material-icons.css"
-  rel="stylesheet">
-  <style> 
-  td md-input-container {
-    margin: 0;
-  }
+  <link href="../node_modules/material-design-icons/iconfont/material-icons.css" rel="stylesheet">
+  <style>
+    td md-input-container {
+      margin: 0;
+    }
 
-  td .md-button.md-icon-button {
-    margin-bottom: 26px; 
-   }
+    :focus {
+      outline: 0;
+    }
 
-   td .md-button.md-icon-button md-icon {
-    color: red;
-   }
+    td .md-button.md-icon-button {
+      margin-bottom: 26px;
+    }
 
-
+    td .md-button.md-icon-button md-icon {
+      color: red;
+    }
   </style>
 </head>
 
@@ -29,36 +30,64 @@
   <script src="../node_modules/gsap/TweenMax.js"></script>
   <script src='./helper_libs/Winwheel.min.js'></script>
 
-  <div flex ng-controller="RaffleHomeCtrl" ng-hide="true" layout="column">
-      
+  <div flex ng-hide="isCreating || isPlaying" layout="column">
+    <div flex></div>
+    <div layout="row">
+      <span flex></span>
+      <h1 style="margin: 0;" class="md-display-4">TOMBOLAMATOR</h1>
+      <span flex></span>
+    </div>
+    <div layout="row">
+      <span flex></span>
+      <h3 class="md-title">Creado por Franklin R. Isalguez G.</h3>
+      <span flex></span>
+    </div>
+    <div layout="row">
+      <span flex></span>
+      <md-button class="md-raised md-primary" ng-click="createRaffle()" style="background: #003256;">Crear tómbola</md-button>
+      <span flex></span>
+    </div>
+
+    <div layout="row">
+      <span flex></span>
+      <md-button class="md-raised md-primary" style="background: #003256;" ng-click="openFile()">Abrir tómbola</md-button>
+      <span flex></span>
+    </div>
+
+    <div flex></div>
   </div>
 
-  <div flex ng-controller="RaffleCreateCtrl" layout="row" ng-init="createPreview()">
+  <div flex ng-controller="RaffleCreateCtrl" ng-show="isPlaying" layout="row" ng-init="createPreview()">
 
-    <md-sidenav flex class="md-sidenav-left" md-component-id="left" md-is-locked-open="true" md-whiteframe="4" layout="column">
+    <md-sidenav flex class="md-sidenav-left" md-component-id="left" ng-show="isCreating" md-is-locked-open="true" md-whiteframe="4"
+      layout="column">
+
+      <md-toolbar class="md-theme-light" style="background: #003256; min-height: 90px;">
+        <h1 class="md-display-1" style="margin-left: 8px;">Tómbola</h1>
+      </md-toolbar>
       <md-content>
+        <md-input-container class="md-block">
+          <input placeholder="Nombre de la rifa" type="text" ng-model="raffle.raffleName" />
 
-        <h1>Construir tómbola</h1>
-        <!-- <md-input-container class="md-block">
-            <label>Numero de divisiones</label>
-            <input required type="number" ng-model="raffle.numSegments" />
-      
-          </md-input-container> -->
-        
-        <md-button class="md-raised md-primary" ng-click="saveFile()">Guardar tómbola</md-button>
-        <h2>Lista de Premios</h2>
+        </md-input-container>
+
+        <md-button class="md-raised md-primary" style="background: #003256;" ng-click="openFile()">Abrir tómbola</md-button>
+        <md-button class="md-raised md-primary" style="background: #003256;" ng-click="saveFile(raffle)">Guardar tómbola e ir a rifa</md-button>
+        <h2 style="margin-left: 8px;" class="md-headline">Lista de Premios</h2>
         <div layout="row">
-            <md-button class="md-raised md-primary" ng-click="addPrize(); createPreview()">Añadir Premio</md-button>
-            <md-switch ng-change="createPreview()" ng-model="ProportionalChance" aria-label="Probabilidad proporcional" ng-true-value="true" ng-false-value="false">
-                Probabilidad proporcional
-              </md-switch>
+          <md-button class="md-raised md-primary" style="background: #003256;" ng-click="addPrize(); createPreview()">Añadir Premio</md-button>
+          <md-switch class="md-primary" ng-change="createPreview()" ng-model="raffle.ProportionalChance" aria-label="Probabilidad proporcional"
+            ng-true-value="true" ng-false-value="false">
+            > Probabilidad por cantidad
+          </md-switch>
         </div>
-        
+        <h4 style="margin-left: 8px;" class="md-title">Premios disponibles: {{raffle.total}}</h4>
         <table>
           <tr>
-            <th>Nombre</th>
+            <th>Premio</th>
             <th>Cantidad</th>
             <th>Color</th>
+            <th>¿Una?</th>
           </tr>
           <tr ng-repeat="segment in raffle.segments">
             <td>
@@ -69,7 +98,7 @@
             </td>
             <td>
               <md-input-container class="md-block">
-                <input ng-change="createPreview()" min="1"  type="number" ng-model="segment.qty" />
+                <input ng-change="createPreview()" min="1" type="number" ng-model="segment.qty" />
               </md-input-container>
             </td>
             <td>
@@ -78,30 +107,104 @@
               </md-input-container>
             </td>
             <td>
-                <md-button ng-click="deletePrize($index)" class="md-icon-button" aria-label="Favorite">
-                    <md-icon><i class="material-icons">remove_circle_outline</i></md-icon>
-                  </md-button>
+              <md-switch style="margin-bottom: 44px;" class="md-primary" style="background: #003256;" ng-change="createPreview()" ng-model="segment.una" aria-label="¿Una?"
+                ng-true-value="true" ng-false-value="false">
+              </md-switch>
+            </td>
+            <td>
+              <md-button ng-click="deletePrize($index)" class="md-icon-button" aria-label="Favorite">
+                <md-icon>
+                  <i class="material-icons">remove_circle_outline</i>
+                </md-icon>
+              </md-button>
             </td>
           </tr>
         </table>
       </md-content>
     </md-sidenav>
-    <div flex layout="column">
+    <div style="background-color: white;" flex layout="column">
+      <md-toolbar style="background: #003256; min-height: 90px;" class="md-theme-light" layout="row">
+        <h1 class="md-display-1" style="margin-left: 8px; font-weight:bold;">{{raffle.raffleName}}</h1>
+        <span flex></span>
+        <img ng-show="!showPrizeCount || isCreating" style="height: 70px; margin-right: 8px; margin-top: 8px;" src="./imgs/unique-white.png">
+      </md-toolbar>
       <div layout="row">
-          <md-button class="md-raised md-primary" ng-click="openFile()">Abrir archivo</md-button>
-          
+        <span flex></span>
+        <i style="font-size: 4em; color:#fbb040;" class="material-icons">arrow_downward</i>
+        <span flex></span>
       </div>
 
-      <canvas flex ng-show="myWheel" id='canvas' layout="row" width="1200" height="900" >
-        Canvas not supported, use another browser.
-      </canvas>
-      <div flex="10"></div>
+      <md-button ng-show="!isCreating" ng-click="createRaffle()"  class="md-primary md-fab md-fab-bottom-left" style="background: #003256;">
+        <md-tooltip md-direction="right" md-visible="tooltipVisible">Editar tómbola</md-tooltip>
+        <md-icon>
+          <i class="material-icons">edit</i>
+        </md-icon>
+      </md-button>
+
+      <div layout="row" >
+        <span flex="15" ng-show="!showPrizeCount && !isCreating"></span>
+          <canvas ng-click="spinWheel()" flex ng-show="myWheel" id='canvas' layout="row" width="1200" height="900">
+              Canvas not supported, use another browser.
+            </canvas>
+            <span flex="15" ng-show="!showPrizeCount && !isCreating"></span>
+      </div>
+
+
+      
+      <div layout="row" flex="5">
+        <span flex></span>
+        <p class="md-body-2">Haga click en la tómbola para girar.</p>
+        <span flex></span>
+      </div>
+
+      <md-button ng-show="!showPrizeCount && !isCreating" ng-click="showThePrizeCount()" style="background: #003256;" class="md-primary md-fab md-fab-bottom-right">
+        <md-tooltip md-direction="left" md-visible="tooltipVisible">Ver premios restantes</md-tooltip>
+        <md-icon>
+          <i class="material-icons">card_giftcard</i>
+        </md-icon>
+      </md-button>
+
     </div>
+
+    <md-sidenav class="md-sidenav-right" ng-show="showPrizeCount && !isCreating" md-is-locked-open="true">
+      <md-toolbar class="md-theme-light" style="background: #003256; min-height: 90px;" layout="row">
+        <span flex></span>
+        <img style="height: 70px; margin-right: 8px; margin-top: 8px;" src="./imgs/unique-white.png">
+      </md-toolbar>
+      <h1 class="md-display-1" style="margin-left: 8px;">Premios restantes</h1>
+      <md-button class="md-raised md-primary" style="background: #003256;" ng-click="showThePrizeCount()">Ocultar Premios</md-button>
+      <md-content layout-padding>
+        <table style="width: 100%; text-align: center;">
+          <tr style="color: white; background: #003256;">
+            <th>Premio</th>
+            <th>Cantidad</th>
+          </tr>
+          <tr ng-repeat="segment in raffle.segments" style="background-color: {{segment.color}}; color: {{segment.textColor}}">
+            <td style="font-weight: bold;">
+              {{segment.name}}
+            </td>
+            <td style="font-size: 35px; font-weight: bold;">
+              {{segment.qty}}
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">
+              TOTAL
+            </td>
+            <td style="font-size: 35px; font-weight: bold;">
+              {{raffle.total}}
+            </td>
+          </tr>
+        </table>
+      </md-content>
+
+    </md-sidenav>
 
   </div>
 
   <script>
     require('./renderer.js');
+
   </script>
 
 

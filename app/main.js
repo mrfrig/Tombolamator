@@ -26,9 +26,11 @@ const saveRaffle = exports.saveRaffle = function(file, content) {
     });
   }
 
-  if (!file) return;
+  if (!file) return null;
 
   fs.writeFileSync(file,content);
+
+  return file;
 };
 
 app.on('ready', function() {

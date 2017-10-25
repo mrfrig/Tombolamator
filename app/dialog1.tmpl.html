@@ -1,0 +1,48 @@
+<md-dialog aria-label="Mango (Fruit)" layout="column" style="width: 100%">
+
+  <md-dialog-content layout="column" flex style="margin-top: 40px;">
+
+
+    <div layout="row">
+
+      <span flex></span>
+      <img src="./imgs/unique.png">
+      <span flex></span>
+    </div>
+    <div layout="row">
+
+      <span flex></span>
+      <img style="width: 250px; height: 250px;" src="./imgs/fireworks.gif">
+      <div layout="column">
+          <h1 class="md-display-3">¡MUCHAS FELICIDADES!</h1>
+          
+
+    <div layout="row">
+        
+      <span flex></span>
+      
+      <h2 class="md-display-2" style="text-transform: uppercase;">
+          Has ganado un {{prize}}<span ng-show="una">a</span>
+        </h2>
+      
+      <span flex></span>
+    </div>
+      </div>
+      
+      <img style="width: 250px; height: 250px;" src="./imgs/fireworks.gif">
+      <span flex></span>
+    </div>
+
+  </md-dialog-content>
+
+  <md-dialog-actions layout="column" flex>
+
+
+    <md-button ng-click="confirmPrize(prize)" style="background:#4caf50; font-size: 20px; font-weight:bold" class="md-raised md-primary">
+      Confirmar
+    </md-button>
+    <md-button ng-click="confirmPrize()" style="font-size: 10px;" class="md-warn">
+      Cancelar premio
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>
