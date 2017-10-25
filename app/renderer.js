@@ -82,7 +82,7 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
     vm.raffle.segments.splice(index, 1);
   };
 
-  ipcRenderer.on('file-opened', function(event, file, content){
+  ipcRenderer.on('file-opened', function (event, file, content) {
     filePath = file;
     vm.raffle = JSON.parse(content);
     vm.createPreview();
@@ -91,13 +91,13 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
 
   function totalPrizes() {
     var total = 0;
-    vm.raffle.segments.forEach(function(element) {
+    vm.raffle.segments.forEach(function (element) {
       total += element.qty;
     }, this);
     return total;
   }
 
-  vm.spinWheel = function() {
+  vm.spinWheel = function () {
     if (!vm.isRotating && !vm.isCreating) {
       vm.myWheel.startAnimation();
     }
@@ -110,93 +110,100 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
     $scope.showAdvanced();
   };
 
-  vm.getUna = function getUna(name){
+  vm.getUna = function getUna(name) {
     for (var i = 0; i < vm.raffle.segments.length; i++) {
       var element = vm.raffle.segments[i];
 
       if (element.name === name) {
         return element.una;
-      } 
+      }
     }
   };
 
-  vm.prizeWon = function prizeWon(prize){
-    vm.raffle.segments.forEach(function(element) {
+  vm.prizeWon = function prizeWon(prize) {
+    vm.raffle.segments.forEach(function (element) {
       if (element.name === prize && element.qty >= 0) {
         element.qty -= 1;
       }
     }, this);
   };
 
-  $scope.showAdvanced = function(ev) {
+  $scope.showAdvanced = function (ev) {
     $mdDialog.show({
       controller: DialogController,
       templateUrl: 'dialog1.tmpl.html',
       parent: angular.element(document.body),
       targetEvent: ev,
-      clickOutsideToClose:true,
+      clickOutsideToClose: true,
       fullscreen: true // Only for -xs, -sm breakpoints.
     })
-    .then(function(prize) {
-      vm.prizeWon(prize);
-      vm.saveFile(vm.raffle);
-      vm.createPreview();
-    }, function() {
-      vm.createPreview();
-    });
+      .then(function (prize) {
+        vm.prizeWon(prize);
+        vm.saveFile(vm.raffle);
+        vm.createPreview();
+      }, function () {
+        vm.createPreview();
+      });
   };
 
   function DialogController($scope, $mdDialog, $rootScope) {
     $scope.prize = $rootScope.prize;
     $scope.una = $rootScope.una;
-    $scope.hide = function() {
+    $scope.hide = function () {
       $mdDialog.hide();
     };
 
-    $scope.cancel = function() {
+    $scope.cancel = function () {
       $mdDialog.cancel();
     };
 
-    $scope.confirmPrize = function(prize) {
+    $scope.confirmPrize = function (prize) {
       $mdDialog.hide(prize);
     };
   }
 
 
   vm.getContrastYIQ = function getContrastYIQ(hexcolor) {
-    var r = parseInt(hexcolor.substring(1,3),16);
-    var g = parseInt(hexcolor.substring(3,5),16);
-    var b = parseInt(hexcolor.substring(5,7),16);
-    var yiq = ((r*299)+(g*587)+(b*114))/1000;
-   
+    var r = parseInt(hexcolor.substring(1, 3), 16);
+    var g = parseInt(hexcolor.substring(3, 5), 16);
+    var b = parseInt(hexcolor.substring(5, 7), 16);
+    var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
     return (yiq >= 128) ? '#000000' : "#ffffff";
-   };
+  };
 
   vm.createPreview = function createPreview() {
-    
+
     vm.raffle.total = totalPrizes();
     var raffle = {
       'numSegments': vm.raffle.segments.length,
       'segments': [],
       'lineWidth': 2,
-      'animation' : {
-        'type'     : 'spinToStop',
-        'duration' : Math.random() * (5 - 2) + 2,
-        'spins'    : Math.random() * (8 - 4) + 4,
-        'callbackFinished' : 'angular.element(document.getElementById("canvas")).scope().alertPrize()'
+      'animation': {
+        'type': 'spinToStop',
+        'duration': Math.random() * (5 - 2) + 2,
+        'spins': Math.random() * (8 - 4) + 4,
+        'callbackFinished': 'angular.element(document.getElementById("canvas")).scope().alertPrize()'
       }
-      
-  };
-    vm.raffle.segments.forEach(function(element) {
+
+    };
+    vm.raffle.segments.forEach(function (element) {
       element.textColor = vm.getContrastYIQ(element.color);
-      raffle.segments.push({
-        'fillStyle' : element.color, 
-        'text' : element.name,
-        'textFillStyle': element.textColor,
-        'textFontSize': 45
-      });
-      if (vm.raffle.ProportionalChance) {
-        raffle.segments[raffle.segments.length - 1].size = winwheelPercentToDegrees(element.qty/vm.raffle.total*100);
+      if (element.qty !== 0) {
+        raffle.segments.push({
+          'fillStyle': element.color,
+          'text': element.name,
+          'textFillStyle': element.textColor,
+          'textFontSize': 45
+        });
+        if (vm.raffle.ProportionalChance) {
+          raffle.segments[raffle.segments.length - 1].size = winwheelPercentToDegrees(element.qty / vm.raffle.total * 100);
+        }
+      }
+      else{
+        if (raffle.numSegments !== 0) {
+          raffle.numSegments -= 1;
+        }
       }
     }, this);
 
@@ -256,7 +263,7 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
 //       'callbackAfter' : 'drawTriangle()'
 //   }
 // });
-  
+
 // }
 
 // // Function to draw pointer using code (like in a previous tutorial).
@@ -278,6 +285,6 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
 //   ctx.stroke();                 // Complete the path by stroking (draw lines).
 //   ctx.fill();                   // Then fill.
 
-  
+
 // }
 
