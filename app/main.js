@@ -37,6 +37,7 @@ app.on('ready', function() {
   mainWindow = new BrowserWindow();
   mainWindow.setTitle("Tombolamator");
   mainWindow.setFullScreen(true);
+  mainWindow.setMenuBarVisibility(true);
 
   mainWindow.once('ready-to-show', function(){
     mainWindow.show();
