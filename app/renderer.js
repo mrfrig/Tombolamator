@@ -49,6 +49,8 @@ RaffleApp.controller('RaffleMainCtrl', function RaffleMainCtrl($scope, $rootScop
 
 RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDialog, $rootScope) {
   var vm = $scope;
+  var Wheel = new Audio('./sounds/Wheel.mp3');
+  var taDa = new Audio('./sounds/Ta Da.mp3');
   vm.raffle = {
     raffleName: "",
     numSegments: 2,
@@ -103,6 +105,7 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
       if (vm.raffle.ProportionalChance) {
         vm.myWheel.animation.stopAngle = calculatePrizeAngle();
       }
+      Wheel.play();
       vm.myWheel.startAnimation();
     }
   };
@@ -170,6 +173,7 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
   function DialogController($scope, $mdDialog, $rootScope) {
     $scope.prize = $rootScope.prize;
     $scope.una = $rootScope.una;
+    taDa.play();
     $scope.hide = function () {
       $mdDialog.hide();
     };
@@ -202,6 +206,7 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
     var raffle = {
       'numSegments': vm.raffle.segments.length,
       'segments': [],
+      'pins' : true,
       'lineWidth': 2,
       'animation': {
         'type': 'spinToStop',
