@@ -78,6 +78,7 @@
           <md-button class="md-raised md-primary" style="background: #003256;" ng-click="addPrize(); createPreview()">Añadir Premio</md-button>
           <md-switch class="md-primary" ng-change="createPreview()" ng-model="raffle.ProportionalChance" aria-label="Probabilidad proporcional"
             ng-true-value="true" ng-false-value="false">
+            <md-tooltip style="font-size: 18px;" md-direction="right" md-visible="tooltipVisible">Si esto esta activado, mientras más cantidad tiene un premio mas posibilidad tiene de salir.</md-tooltip>
             > Probabilidad por cantidad
           </md-switch>
         </div>
@@ -107,12 +108,12 @@
               </md-input-container>
             </td>
             <td>
-              <md-switch style="margin-bottom: 44px;" class="md-primary" style="background: #003256;" ng-change="createPreview()" ng-model="segment.una" aria-label="¿Una?"
-                ng-true-value="true" ng-false-value="false">
+              <md-switch style="margin-bottom: 44px;" class="md-primary" style="background: #003256;" ng-change="createPreview()" ng-model="segment.una"
+                aria-label="¿Una?" ng-true-value="true" ng-false-value="false">
               </md-switch>
             </td>
             <td>
-              <md-button  ng-click="deletePrize($index)" class="md-icon-button" aria-label="Favorite">
+              <md-button ng-click="deletePrize($index)" class="md-icon-button" aria-label="Favorite">
                 <md-icon md-svg-src="./imgs/ic_remove_circle_outline_red_48px.svg"></md-icon>
               </md-button>
             </td>
@@ -120,7 +121,7 @@
         </table>
       </md-content>
     </md-sidenav>
-    <div style="background-color: white;" flex layout="column">
+    <div style="background-color: white;" flex layout="column">      
       <md-toolbar style="background: #003256; min-height: 90px;" class="md-theme-light" layout="row">
         <h1 class="md-display-1" style="margin-left: 8px; font-weight:bold;">{{raffle.raffleName}}</h1>
         <span flex></span>
@@ -132,21 +133,19 @@
         <span flex></span>
       </div>
 
-      <md-button ng-show="!isCreating" ng-click="createRaffle()"  class="md-primary md-fab md-fab-bottom-left" style="background: #003256;">
-        <md-tooltip md-direction="right" md-visible="tooltipVisible">Editar tómbola</md-tooltip>
-          <md-icon md-svg-src="./imgs/ic_edit_white_48px.svg"></md-icon>
+      <md-button ng-show="!isCreating" ng-click="createRaffle()" class="md-primary md-fab md-fab-bottom-left" style="background: #003256;">
+        <md-tooltip style="font-size: 14px;" md-direction="right" md-visible="tooltipVisible">Editar tómbola</md-tooltip>
+        <md-icon md-svg-src="./imgs/ic_edit_white_48px.svg"></md-icon>
       </md-button>
 
-      <div flex layout="row" >
+      <div flex layout="row">
         <span flex="15" ng-show="!showPrizeCount && !isCreating"></span>
-          <canvas ng-click="spinWheel()" flex ng-show="myWheel" id='canvas' layout="row" width="1200" height="900">
-              Canvas not supported, use another browser.
-            </canvas>
-            <span flex="15" ng-show="!showPrizeCount && !isCreating"></span>
+        <canvas ng-click="spinWheel()" flex id='canvas' layout="row" width="1200" height="900">
+          Canvas not supported, use another browser.
+        </canvas>
+        <span flex="15" ng-show="!showPrizeCount && !isCreating"></span>
       </div>
 
-
-      
       <div layout="row" flex="5">
         <span flex></span>
         <p class="md-body-2">Haga click en la tómbola para girar.</p>
@@ -154,8 +153,8 @@
       </div>
 
       <md-button ng-show="!showPrizeCount && !isCreating" ng-click="showThePrizeCount()" style="background: #003256;" class="md-primary md-fab md-fab-bottom-right">
-        <md-tooltip md-direction="left" md-visible="tooltipVisible">Ver premios restantes</md-tooltip>
-          <md-icon md-svg-src="./imgs/ic_card_giftcard_white_48px.svg"></md-icon>
+        <md- style="font-size: 14px;" md-direction="left" md-visible="tooltipVisible">Ver premios restantes</md-tooltip>
+        <md-icon md-svg-src="./imgs/ic_card_giftcard_white_48px.svg"></md-icon>
 
       </md-button>
 

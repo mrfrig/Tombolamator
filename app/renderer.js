@@ -19,7 +19,7 @@ RaffleApp.controller('RaffleMainCtrl', function RaffleMainCtrl($scope, $rootScop
   vm.isCreating = false;
 
   vm.isPlaying = false;
-  vm.showPrizeCount = true;
+  vm.showPrizeCount = false;
 
   vm.openFile = function openFile() {
     filePath = mainProcess.getFileFromUserSelection();
@@ -98,10 +98,30 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
     return total;
   }
 
-  vm.spinWheel = function () {
+  vm.spinWheel = function spinWheel() {
     if (!vm.isRotating && !vm.isCreating) {
+      if (vm.raffle.ProportionalChance) {
+        vm.myWheel.animation.stopAngle = calculatePrizeAngle();
+      }
       vm.myWheel.startAnimation();
     }
+  };
+  
+  var calculatePrizeAngle = function calculatePrizeAngle() {
+    var segment = getSegmentByProb();
+    return ((segment.degressRange.min + 1) + Math.floor((Math.random() * (segment.degressRange.max - segment.degressRange.min - 2))));
+  };
+
+  var getSegmentByProb = function getSegmentByProb() {
+    var percent = Math.random() * 100;
+    for (var index = 0; index < vm.raffle.segments.length; index++) {
+      var element = vm.raffle.segments[index];
+      if (percent >= element.probabilityRange.min && percent <= element.probabilityRange.max) {
+        return element;
+      }
+    }
+
+    return null;
   };
 
   vm.alertPrize = function alertPrize() {
@@ -175,6 +195,9 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
 
   vm.createPreview = function createPreview() {
 
+    var degressRange = 0;
+    var probabilityRange = 0;
+
     vm.raffle.total = totalPrizes();
     var raffle = {
       'numSegments': vm.raffle.segments.length,
@@ -182,14 +205,24 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
       'lineWidth': 2,
       'animation': {
         'type': 'spinToStop',
-        'duration': Math.random() * (5 - 2) + 2,
-        'spins': Math.random() * (8 - 4) + 4,
+        'duration': 5,
+        'spins': 8,
         'callbackFinished': 'angular.element(document.getElementById("canvas")).scope().alertPrize()'
       }
 
     };
     vm.raffle.segments.forEach(function (element) {
+
+      var segmentDegrees = 360 / raffle.numSegments;
+      element.degressRange = {min: degressRange, max: degressRange + segmentDegrees};
+      degressRange += segmentDegrees;
+
+      element.probability = element.qty / vm.raffle.total * 100;
+      element.probabilityRange = {min: probabilityRange, max: probabilityRange + element.probability};
+      probabilityRange += element.probability;
+      
       element.textColor = vm.getContrastYIQ(element.color);
+
       if (element.qty !== 0) {
         raffle.segments.push({
           'fillStyle': element.color,
@@ -197,10 +230,8 @@ RaffleApp.controller('RaffleCreateCtrl', function RaffleCreateCtrl($scope, $mdDi
           'textFillStyle': element.textColor,
           'textFontSize': 45
         });
-        if (vm.raffle.ProportionalChance) {
-          raffle.segments[raffle.segments.length - 1].size = winwheelPercentToDegrees(element.qty / vm.raffle.total * 100);
-        }
       }
+
       else{
         if (raffle.numSegments !== 0) {
           raffle.numSegments -= 1;
